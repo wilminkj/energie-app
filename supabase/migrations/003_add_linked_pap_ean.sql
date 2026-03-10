@@ -1,0 +1,5 @@
+-- ============================================================
+-- Energie App — linked_pap_ean is nu onderdeel van 001_initial_schema.sql
+-- Deze migratie is leeg omdat het veld is opgenomen in het initiële schema.
+-- Bewaard voor migratievolgorde-compatibiliteit.
+-- ============================================================

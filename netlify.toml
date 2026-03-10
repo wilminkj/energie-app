@@ -1,0 +1,13 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # VITE_SUPABASE_URL en VITE_SUPABASE_ANON_KEY instellen via Netlify dashboard
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

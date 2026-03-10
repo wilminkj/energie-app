@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+/* AG Grid column group header colors */
+.adres-group-header {
+  background-color: #eff6ff !important;
+}
+.sde-group-header {
+  background-color: #fef3c7 !important;
+}
+.alloc-group-header {
+  background-color: #ecfdf5 !important;
+}
+
+/* Row spanning: show cell content only on spanning rows */
+.spanning-cell {
+  background-color: white;
+}
+.adres-group-hover {
+  background-color: var(--ag-row-hover-color) !important;
+}
+.adres-group-hover .spanning-cell {
+  background-color: var(--ag-row-hover-color) !important;
+}
+.empty-span-cell {
+  visibility: hidden;
+}
+.empty-span-cell-last {
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+  z-index: 2 !important;
+  border-bottom: 1px solid var(--ag-row-border-color, #dde2eb) !important;
+}

@@ -1,0 +1,35 @@
+# Environment variables (contain secrets)
+.env
+frontend/.env
+
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Data files (large, not source code)
+data/
+
+# Build output
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# Claude Code
+.claude/
