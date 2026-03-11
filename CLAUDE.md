@@ -62,10 +62,13 @@ Relationships: `sde_adres (1) ← (N) sde_beschikking`, `sde_adres (1) ← (N) n
 Key RPC: `adressen_binnen_straal(center_lat, center_lon, straal_m)` — PostGIS radius query on `sde_adres` using `ST_DWithin`.
 
 ### Frontend (React + TypeScript + Vite)
-Single-page app with one main view:
-- **App.tsx** — root state: search selection, radius (straalM), cleared flag
+Single-page app with two switchable views (toggle in header: "Tabel" / "Boomstructuur"):
+- **App.tsx** — root state: search selection, radius (straalM), cleared flag, viewMode ('table' | 'tree')
 - **FilterPanel** → **UnifiedSearch** (searches across sde_adres/sde_beschikking/allocatiepunt tables simultaneously) + **RadiusSlider** (0–2000m)
 - **AdresTable** — AG Grid with 3 column groups (Allocatiepunten, Adres, SDE Beschikkingen). Flattens `SdeAdresMetRelaties` (3-level: sde_adres → nummeraanduiding → allocatiepunt) for row spanning.
+- **TreeView** (`components/tree/`) — React Flow (@xyflow/react) hierarchical visualization. One tree per sde_adres, left-to-right layout via dagre. Custom nodes: AdresNode (blue), BeschikkingNode (yellow), AllocatiepuntNode (green). Click to expand/collapse node details. PAP→SAP hierarchy via `linked_pap_ean`.
+
+Both views consume the same `adressen: SdeAdresMetRelaties[]` from `useFilteredAdressen`.
 
 Custom hooks:
 - `useAdresSearch(query)` — parallel Supabase queries across sde_adres, sde_beschikking, allocatiepunt (via nummeraanduiding join), 300ms debounce, AbortController cancellation
