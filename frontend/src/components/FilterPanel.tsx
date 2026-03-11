@@ -7,6 +7,8 @@ interface FilterPanelProps {
   onSelectionChange: (result: SearchResult | null) => void
   straalM: number
   onStraalChange: (value: number) => void
+  verbergGas: boolean
+  onVerbergGasChange: (value: boolean) => void
 }
 
 export function FilterPanel({
@@ -14,11 +16,22 @@ export function FilterPanel({
   onSelectionChange,
   straalM,
   onStraalChange,
+  verbergGas,
+  onVerbergGasChange,
 }: FilterPanelProps) {
   return (
     <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 border-b border-gray-200">
       <UnifiedSearch selection={selection} onSelect={onSelectionChange} />
       <RadiusSlider value={straalM} onChange={onStraalChange} />
+      <label className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={verbergGas}
+          onChange={(e) => onVerbergGasChange(e.target.checked)}
+          className="rounded border-gray-300"
+        />
+        Verberg gas
+      </label>
     </div>
   )
 }

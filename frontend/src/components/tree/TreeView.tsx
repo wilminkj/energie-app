@@ -73,13 +73,12 @@ function TreeViewInner({ adressen, loading }: TreeViewProps) {
             position: posMap.get(n.id) ?? n.position,
           }))
           setNodes(result)
-          requestAnimationFrame(() => fitView({ padding: 0.15, maxZoom: 1.2, duration: 300 }))
           return currentEdges
         })
       }, 0)
       return updated
     })
-  }, [setNodes, setEdges, fitView])
+  }, [setNodes, setEdges])
 
   if (loading) {
     return (

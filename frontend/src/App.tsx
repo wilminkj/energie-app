@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { FilterPanel } from './components/FilterPanel'
 import { AdresTable } from './components/AdresTable'
 import { TreeView } from './components/tree/TreeView'
@@ -10,9 +10,23 @@ type ViewMode = 'table' | 'tree'
 function App() {
   const [selection, setSelection] = useState<SearchResult | null>(null)
   const [cleared, setCleared] = useState(false)
-  const [straalM, setStraalM] = useState(500)
-  const [viewMode, setViewMode] = useState<ViewMode>('table')
+  const [straalM, setStraalM] = useState(100)
+  const [viewMode, setViewMode] = useState<ViewMode>('tree')
+  const [verbergGas, setVerbergGas] = useState(true)
   const { adressen, loading, error, defaultSelection } = useFilteredAdressen(selection, straalM)
+
+  const gefilterdeAdressen = useMemo(() => {
+    if (!verbergGas) return adressen
+    return adressen.map(adres => ({
+      ...adres,
+      nummeraanduiding: adres.nummeraanduiding.map(nra => ({
+        ...nra,
+        allocatiepunt: nra.allocatiepunt.filter(ap =>
+          ap.product?.toUpperCase() !== 'GAS'
+        ),
+      })),
+    }))
+  }, [adressen, verbergGas])
 
   const activeSelection = cleared ? selection : (selection ?? defaultSelection)
 
@@ -28,7 +42,7 @@ function App() {
           Energie Netwerk Overzicht
         </h1>
         <p className="text-xs text-gray-500 mt-0.5">
-          Overzicht van alle allocatiepunten die horen bij de adressen genoemd in SDE-Beschikkingen
+          Vind alle EAN-codes en SDE-beschikkingen in de buurt van een bekend adres, EAN-code of SDE-beschikking.
         </p>
         <div className="flex gap-1 mt-1.5">
           <button
@@ -55,6 +69,8 @@ function App() {
         onSelectionChange={handleSelectionChange}
         straalM={straalM}
         onStraalChange={setStraalM}
+        verbergGas={verbergGas}
+        onVerbergGasChange={setVerbergGas}
       />
 
       {error && (
@@ -70,9 +86,9 @@ function App() {
       )}
 
       {viewMode === 'table' ? (
-        <AdresTable adressen={adressen} loading={loading} />
+        <AdresTable adressen={gefilterdeAdressen} loading={loading} />
       ) : (
-        <TreeView adressen={adressen} loading={loading} />
+        <TreeView adressen={gefilterdeAdressen} loading={loading} />
       )}
     </div>
   )

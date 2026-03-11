@@ -24,8 +24,9 @@ export function useFilteredAdressen(
       const { data, error: queryError } = await supabase
         .from('sde_adres')
         .select('sde_adres_id, straat, huisnummer, postcode, woonplaats, latitude, longitude')
+        .eq('postcode', '5047RH')
+        .eq('huisnummer', '61')
         .not('latitude', 'is', null)
-        .order('sde_adres_id', { ascending: true })
         .limit(1)
         .single()
 

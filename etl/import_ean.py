@@ -1,7 +1,7 @@
 """Import EAN-codes uit het EDSN EAN-codeboek naar Supabase.
 
 Haalt allocatiepunten op via de publieke EAN-codeboek API per postcode+product
-(alleen Tilburg) en upsert nummeraanduidingen en allocatiepunten naar Supabase.
+voor alle postcodes uit SDE-adressen en upsert nummeraanduidingen en allocatiepunten naar Supabase.
 
 De EDSN API levert per allocatiepunt ook een bagId en adresgegevens, waarmee
 de nummeraanduiding-tabel wordt gevuld.
@@ -11,6 +11,7 @@ Gebruik:
     python -m etl.import_ean --test
     python -m etl.import_ean --dry-run
     python -m etl.import_ean --limit 10
+    python -m etl.import_ean --skip-existing
 """
 
 import argparse
@@ -35,8 +36,8 @@ REQUEST_INTERVAL = 1.0 / REQUESTS_PER_SECOND
 BATCH_SIZE = 500
 
 
-def fetch_tilburg_postcodes(client: Client, limit: int | None = None) -> list[str]:
-    """Haal unieke postcodes op van SDE-adressen in Tilburg.
+def fetch_sde_postcodes(client: Client, limit: int | None = None) -> list[str]:
+    """Haal unieke postcodes op van alle SDE-adressen.
 
     Pagineert automatisch omdat Supabase standaard max 1000 rijen retourneert.
     """
@@ -48,7 +49,6 @@ def fetch_tilburg_postcodes(client: Client, limit: int | None = None) -> list[st
         result = (
             client.table("sde_adres")
             .select("postcode")
-            .ilike("woonplaats", "%tilburg%")
             .order("postcode")
             .range(offset, offset + PAGE - 1)
             .execute()
@@ -64,14 +64,39 @@ def fetch_tilburg_postcodes(client: Client, limit: int | None = None) -> list[st
     postcodes: list[str] = []
     for row in all_data:
         pc = row["postcode"]
-        if pc not in seen:
+        if pc and pc not in seen:
             seen.add(pc)
             postcodes.append(pc)
 
     if limit:
         postcodes = postcodes[:limit]
 
-    logger.info("Gevonden: %d unieke postcodes in Tilburg", len(postcodes))
+    logger.info("Gevonden: %d unieke postcodes uit SDE-adressen", len(postcodes))
+    return postcodes
+
+
+def fetch_verwerkte_postcodes(client: Client) -> set[str]:
+    """Haal postcodes op die al nummeraanduidingen hebben in de database."""
+    PAGE = 1000
+    all_data: list[dict[str, Any]] = []
+    offset = 0
+
+    while True:
+        result = (
+            client.table("nummeraanduiding")
+            .select("postcode")
+            .order("postcode")
+            .range(offset, offset + PAGE - 1)
+            .execute()
+        )
+        all_data.extend(result.data)
+
+        if len(result.data) < PAGE:
+            break
+        offset += PAGE
+
+    postcodes = {row["postcode"] for row in all_data if row.get("postcode")}
+    logger.info("Gevonden: %d unieke postcodes al verwerkt in nummeraanduiding", len(postcodes))
     return postcodes
 
 
@@ -217,9 +242,9 @@ def upsert_allocatiepunten(client: Client, records: list[dict[str, Any]]) -> int
 
 def run_test(client: Client) -> None:
     """Test-modus: doe één request voor de eerste postcode en log de response."""
-    postcodes = fetch_tilburg_postcodes(client, limit=1)
+    postcodes = fetch_sde_postcodes(client, limit=1)
     if not postcodes:
-        logger.error("Geen postcodes gevonden in Tilburg.")
+        logger.error("Geen postcodes gevonden in SDE-adressen.")
         sys.exit(1)
 
     postcode = postcodes[0]
@@ -252,6 +277,11 @@ def main() -> None:
         default=None,
         help="Verwerk maximaal N postcodes",
     )
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Sla postcodes over die al nummeraanduidingen hebben in de database",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -267,10 +297,22 @@ def main() -> None:
         return
 
     # Haal unieke postcodes op
-    postcodes = fetch_tilburg_postcodes(client, limit=args.limit)
+    postcodes = fetch_sde_postcodes(client, limit=args.limit)
     if not postcodes:
-        logger.info("Geen postcodes gevonden in Tilburg. Niets te doen.")
+        logger.info("Geen postcodes gevonden in SDE-adressen. Niets te doen.")
         return
+
+    if args.skip_existing:
+        verwerkt = fetch_verwerkte_postcodes(client)
+        oorspronkelijk = len(postcodes)
+        postcodes = [pc for pc in postcodes if pc not in verwerkt]
+        logger.info(
+            "Skip bestaande: %d → %d postcodes over (%d al verwerkt)",
+            oorspronkelijk, len(postcodes), oorspronkelijk - len(postcodes),
+        )
+        if not postcodes:
+            logger.info("Alle postcodes zijn al verwerkt. Niets te doen.")
+            return
 
     all_allocatiepunten: list[dict[str, Any]] = []
     all_nummeraanduidingen: dict[str, dict[str, Any]] = {}  # dedup op postcode|huisnummer|toevoeging

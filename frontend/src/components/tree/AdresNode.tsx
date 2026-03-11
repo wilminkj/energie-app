@@ -13,7 +13,8 @@ function DetailRij({ label, waarde }: { label: string; waarde: string | number |
 
 export function AdresNode({ data }: { data: AdresNodeData }) {
   const { adres } = data
-  const label = [adres.straat, adres.huisnummer].filter(Boolean).join(' ')
+  const adresDeel = [adres.straat, [adres.huisnummer, adres.toevoeging].filter(Boolean).join(' ')].filter(Boolean).join(' ')
+  const label = [adresDeel, adres.woonplaats].filter(Boolean).join(', ')
   const sub = adres.postcode ?? ''
 
   return (
@@ -27,12 +28,9 @@ export function AdresNode({ data }: { data: AdresNodeData }) {
 
       {data.expanded && (
         <div className="px-3 pb-2 border-t border-blue-200 pt-1.5 space-y-0.5">
-          <DetailRij label="Woonplaats" waarde={adres.woonplaats} />
-          <DetailRij label="Toevoeging" waarde={adres.toevoeging} />
           <DetailRij label="Bouwjaar" waarde={adres.bouwjaar} />
           <DetailRij label="Oppervlakte" waarde={adres.oppervlakte_m2 ? `${adres.oppervlakte_m2} m²` : null} />
           <DetailRij label="Gebruiksdoel" waarde={adres.gebruiksdoel} />
-          <DetailRij label="BAG ID" waarde={adres.bag_id} />
           <DetailRij label="Lat/Lon" waarde={
             adres.latitude != null && adres.longitude != null
               ? `${adres.latitude.toFixed(4)}, ${adres.longitude.toFixed(4)}`

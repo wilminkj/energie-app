@@ -102,7 +102,7 @@ npm run build
 ### 4. Testing
 
 Voor het testen van de front end kan het handig zijn om de volgende voorbeelden paraat te hebben:
-verschillende bag-id's onder hetzelfde nummeraanduiding: - Vloeiveldweg 2
+- verschillende bag-id's onder hetzelfde nummeraanduiding: Vloeiveldweg 2
 - Verschillende SDE's onder een adres: Vrijheidsweg 4t
 - Verschillende SAPs onder een adres: Theseusstraat 63 b
 - Meerdere adressen onder een sde-adres: Athenastraat 4-10

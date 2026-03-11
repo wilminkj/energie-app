@@ -32,7 +32,7 @@ export type TreeNodeData = AdresNodeData | BeschikkingNodeData | AllocatiepuntNo
 
 const NODE_DIMENSIONS = {
   collapsed: { width: 200, height: 44 },
-  expandedAdres: { width: 320, height: 220 },
+  expandedAdres: { width: 320, height: 85 },
   expandedBeschikking: { width: 300, height: 210 },
   expandedAllocatiepunt: { width: 320, height: 240 },
 }
